@@ -1,0 +1,57 @@
+package prog3.arbol.binario;
+
+import prog3.heap.Heap;
+import prog3.lista.generica.ListaEnlazadaGenerica;
+import prog3.lista.generica.ListaGenerica;
+
+public class CodigoZigZag {
+
+	public ListaGenerica<Character> descifrarCodigo(
+			ArbolBinario<Character> arbolDeCodigos, ListaGenerica<String> listaDeSecuencias) {
+		ListaGenerica<Character> resultado = new ListaEnlazadaGenerica<Character>();
+		listaDeSecuencias.comenzar();
+		while (!listaDeSecuencias.fin()) {
+			resultado.agregarFinal(procesarSecuencia(arbolDeCodigos, listaDeSecuencias.proximo()));
+		}
+		return resultado;
+	}
+
+	/*si lo hacen recursivo, ver que haga los "return" cuando entra a recursion por los nodos que no sean hoja*/
+	private Character procesarSecuencia(ArbolBinario<Character> arbolDeCodigos,
+			String secuencia) {
+		Character caracter;
+		ArbolBinario<Character> actual = arbolDeCodigos;
+		for (int i = 0; i < secuencia.length(); i++) {
+			caracter = secuencia.charAt(i);
+			if (caracter.equals('0'))
+				actual = actual.getHijoIzquierdo();
+			else if (caracter.equals('1'))
+				actual = actual.getHijoDerecho();
+		}
+		return actual.getDatoRaiz();
+	}
+
+	/*si en lugar de una Heap usaban un ABB el recorrido tiene que ser inorder*/
+	public void imprimirLetrasOrdenadas(ArbolBinario<Character> codigos) {
+		Heap<Character> minHeap = new Heap<Character>();
+		guardarDatosDeHojas(codigos, minHeap);
+		imprimirMinHeap(minHeap);
+	}
+
+	private void guardarDatosDeHojas(ArbolBinario<Character> arbolDeCodigos,
+			Heap<Character> minHeap) {
+		if (arbolDeCodigos.esHoja())
+			minHeap.agregar(arbolDeCodigos.getDatoRaiz());
+		else {
+			/*aqu� pueden o no hacer la validacion por vac�o, por la forma del arbol*/
+			guardarDatosDeHojas(arbolDeCodigos.getHijoIzquierdo(), minHeap);
+			guardarDatosDeHojas(arbolDeCodigos.getHijoDerecho(), minHeap);
+		}
+	}
+
+	private void imprimirMinHeap(Heap<Character> minHeap) {
+		while (!minHeap.esVacia()) {
+			System.out.println(minHeap.eliminar());
+		}
+	}
+}
