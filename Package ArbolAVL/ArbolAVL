@@ -1,0 +1,195 @@
+package AVL;
+
+public class ArbolAVL<T extends Comparable<T>> {
+
+	private NodoAVL <T> raiz;
+
+	public ArbolAVL() {
+		this.raiz = null;
+	}
+
+	public ArbolAVL(T dato) {
+		this.raiz = new NodoAVL<T>(dato);
+	}
+
+	private ArbolAVL(NodoAVL<T> nodo) {
+		this.raiz = nodo;
+	}
+
+	private NodoAVL<T> getRaiz() {
+		return raiz;
+	}
+
+	public T getDatoRaiz() {
+		if (this.getRaiz() != null) {
+			return this.getRaiz().getDato();
+		} else {
+			return null;
+		}
+	}
+
+	public ArbolAVL<T> getHijoIzquierdo() {
+		return new ArbolAVL<T>(this.raiz.getHijoIzquierdo());
+	}
+
+	public ArbolAVL<T> getHijoDerecho() {
+		return new ArbolAVL<T>(this.raiz.getHijoDerecho());
+	}
+
+	private NodoAVL<T> buscar(T x, NodoAVL<T> t) {
+		if (t != null) {
+			if (x.compareTo(t.getDato()) < 0) {
+				t = this.buscar(x, t.getHijoIzquierdo());
+			} else if (x.compareTo(t.getDato()) > 0) {
+				t = this.buscar(x, t.getHijoDerecho());
+			} 
+			// Se encontro el nodo, asi que es t
+			return t;
+		} else {
+			return null;
+		}
+	}
+
+	public boolean incluye(T x) {
+		return buscar(x, this.raiz) != null;
+	}
+
+	public T buscar(T dato) {
+		NodoAVL<T> nodo = buscar(dato, this.raiz);
+		if (nodo != null) {
+			return nodo.getDato();
+		} else {
+			return null;
+		}
+	}
+
+
+	public void agregar(T dato) {
+		insertar(dato,this.raiz);
+	}
+	private NodoAVL<T> insertar(T dato, NodoAVL<T> avl){
+		if (avl == null)
+			return avl = new NodoAVL<T>(dato);
+		if (dato.compareTo(avl.getDato())<0){
+			insertar(dato, avl.getHijoIzquierdo());
+			if ((avl.getHijoIzquierdo().altura - avl.getHijoDerecho().altura) ==2){
+				if (dato.compareTo(avl.getHijoIzquierdo().getDato())<0)
+					rotacionSimpleIzq(avl);
+				else
+					rotacionDobleIzq(avl);
+			}
+		}
+		else if ((dato.compareTo(avl.getDato()))>0) {
+			insertar(dato, avl.getHijoDerecho());
+			if ((avl.getHijoDerecho().altura - avl.getHijoIzquierdo().altura)==2){
+				if (dato.compareTo(avl.getHijoDerecho().getDato())>0)
+					rotacionSimpleDer(avl);
+				else
+					rotacionDobleDer(avl);
+			}
+		}
+		else	//Duplicado; El libro dice no hacer nada...
+			avl.altura = Math.max(avl.getHijoIzquierdo().altura, avl.getHijoDerecho().altura);
+		return avl;
+	}
+
+	public void eliminar(T dato) {
+		eliminar(dato, this.getRaiz());
+	}
+	private NodoAVL<T> eliminar(T dato, NodoAVL<T> nodoA){
+		if (nodoA==null)
+			return nodoA;
+		if ((dato.compareTo(nodoA.getDato()))<0)
+			eliminar(dato, nodoA.getHijoIzquierdo());
+		else { 
+			if ((dato.compareTo(nodoA.getDato()))>0)
+				eliminar(dato, nodoA.getHijoDerecho());
+			else{
+				if ((nodoA.getHijoIzquierdo()!=null) && (nodoA.getHijoDerecho()!=null)){
+					nodoA.setDato(eliminarMin(nodoA.getHijoDerecho()));
+				}
+				else{
+					nodoA=(nodoA.getHijoIzquierdo()!=null)
+										?nodoA.getHijoIzquierdo():nodoA.getHijoDerecho();
+				}
+			}
+		}
+		nodoA=balancear(nodoA);
+		nodoA.altura=Math.max(nodoA.getHijoIzquierdo().altura, 
+									nodoA.getHijoDerecho().altura)+1;
+		return nodoA;
+	}
+	private T eliminarMin(NodoAVL<T> nodoA){
+		if (nodoA!=null){
+			if(nodoA.getHijoIzquierdo()!=null){
+				eliminarMin(nodoA.getHijoIzquierdo());
+				nodoA=balancear(nodoA);
+				nodoA.altura=Math.max(nodoA.getHijoIzquierdo().altura, 
+											nodoA.getHijoDerecho().altura)+1;
+			}
+			else {
+				T min;
+				min= nodoA.getDato();	
+				nodoA.getHijoDerecho();
+				return min;
+			}
+			
+		}
+		
+	}
+	private NodoAVL<T> balancear(NodoAVL<T> nodoA){
+		if ((nodoA.getHijoIzquierdo().altura - nodoA.getHijoDerecho().altura) ==2){
+			if (nodoA.getHijoIzquierdo().getHijoIzquierdo().altura>=
+							nodoA.getHijoIzquierdo().getHijoDerecho().altura)
+				rotacionSimpleIzq(nodoA);
+			else
+				rotacionDobleIzq(nodoA);
+		}
+		if ((nodoA.getHijoDerecho().altura - nodoA.getHijoIzquierdo().altura)==2){
+			if (nodoA.getHijoDerecho().getHijoDerecho().altura>=
+							nodoA.getHijoDerecho().getHijoIzquierdo().altura)
+				rotacionSimpleDer(nodoA);
+			else
+				rotacionDobleDer(nodoA);
+		}
+		return nodoA;
+	}
+
+	public boolean esVacio() {
+		return (this.getRaiz() == null);
+	}
+	
+	private void rotacionSimpleIzq(NodoAVL<T> nodo){
+		NodoAVL<T> nodo2 = nodo.getHijoIzquierdo();
+		nodo.setHijoIzquierdo(nodo2.getHijoDerecho());
+		nodo2.setHijoDerecho(nodo);
+		nodo.altura= Math.max(nodo.getHijoIzquierdo().altura,
+									nodo.getHijoDerecho().altura)+1;
+		nodo2.altura= Math.max(nodo2.getHijoIzquierdo().altura,
+								nodo2.getHijoDerecho().altura)+1;
+		nodo=nodo2;
+	}
+
+	
+	private void rotacionSimpleDer(NodoAVL<T> nodo){
+		NodoAVL<T> nodo2= nodo.getHijoDerecho();
+		nodo.setHijoDerecho(nodo2.getHijoIzquierdo());
+		nodo2.setHijoDerecho(nodo);
+		nodo.altura= Math.max(nodo.getHijoIzquierdo().altura, 
+								nodo.getHijoDerecho().altura)+1;
+		nodo2.altura=Math.max(nodo.getHijoIzquierdo().altura, 
+								nodo2.getHijoDerecho().altura)+1;
+		nodo=nodo2;
+	}
+	
+	private void rotacionDobleIzq(NodoAVL<T> nodo){
+		rotacionSimpleDer(nodo.getHijoIzquierdo());
+		rotacionSimpleIzq(nodo);
+	}
+	
+	private void rotacionDobleDer(NodoAVL<T> nodo){
+		rotacionSimpleIzq(nodo.getHijoDerecho());
+		rotacionSimpleDer(nodo);
+	}
+
+}
